@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedMap: AI-Powered Mindmap Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Basic Reset & Body Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #3f4a59; /* Darker, sophisticated grey for main text */
+            background-color: #f0f4f8; /* Soft, light blue-grey background */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Container for main content */
+        .container {
+            max-width: 1000px; /* Slightly wider container */
+            margin: 3.5rem auto;
+            padding: 2.5rem;
+            background-color: #ffffff;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            width: 100%;
+        }
+
+        header h1 {
+            font-size: 3.2em; /* Larger, bolder title */
+            color: #2c3e50; /* Deep, professional blue */
+            margin-bottom: 0.8rem;
+            font-weight: 800; /* Extra bold */
+            letter-spacing: -0.03em; /* Slightly tighter letter spacing */
+        }
+
+        header p {
+            font-size: 1.2em; /* Larger subtitle */
+            color: #607d8b; /* Softer blue-grey for description */
+            max-width: 650px;
+            margin: 0 auto;
+            font-weight: 400;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            width: 100%;
+            text-align: center;
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .upload-section label {
+            display: block;
+            margin-bottom: 1.8rem;
+        }
+
+        .upload-box {
+            border: 2px dashed #9bc5e2; /* Softer blue dashed border */
+            border-radius: 12px;
+            padding: 3rem; /* More padding */
+            background-color: #eef7fc; /* Very light, calming blue background */
+            cursor: pointer;
+            transition: all 0.3s ease-in-out; /* Smoother transition */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px; /* Taller box */
+        }
+
+        .upload-box:hover {
+            border-color: #3498db; /* Brighter blue on hover */
+            background-color: #e0f2f7; /* Slightly darker on hover */
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.1); /* Subtle shadow on hover */
+        }
+
+        .upload-box i {
+            font-size: 4.5em; /* Larger icon */
+            color: #3498db; /* Primary blue icon */
+            margin-bottom: 1.2rem;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .upload-box:hover i {
+            color: #2980b9; /* Darker icon on hover */
+        }
+
+        .upload-box p {
+            font-size: 1.25em; /* Larger main text */
+            color: #2c3e50; /* Dark text */
+            font-weight: 600; /* Bolder */
+        }
+
+        .upload-box p.small-text {
+            font-size: 0.95em; /* Slightly larger small text */
+            color: #7f8c8d; /* Muted grey */
+            margin-top: 0.6rem;
+        }
+
+        .upload-section input[type="file"] {
+            display: none;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem; /* More space for icon */
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); /* Blue gradient */
+            color: #fff;
+            padding: 1rem 2.5rem; /* More padding */
+            border: none;
+            border-radius: 8px; /* Slightly more rounded */
+            font-size: 1.15em; /* Larger font */
+            font-weight: 700; /* Bolder */
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); /* Button shadow */
+        }
+
+        .btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); /* Reverse gradient on hover */
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+            transform: translateY(-2px); /* Lift button slightly */
+        }
+
+        .btn:disabled {
+            background: #cbd5e0; /* Lighter grey when disabled */
+            color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn i {
+            font-size: 1.3em; /* Larger icon */
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #aeb6bf 0%, #7f8c8d 100%); /* Grey gradient */
+            margin-left: 1.2rem;
+            box-shadow: 0 4px 15px rgba(127, 140, 141, 0.2);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7f8c8d 0%, #aeb6bf 100%);
+            box-shadow: 0 6px 20px rgba(127, 140, 141, 0.3);
+            transform: translateY(-2px);
+        }
+
+
+        /* Current File Display */
+        #currentFileDisplay {
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 1em;
+            color: #5d6d7e;
+            font-weight: 500;
+            min-height: 25px; /* Reserve more space */
+        }
+
+        /* Features Section */
+        .features-section {
+            width: 100%;
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        .features-section h2 {
+            font-size: 2.4em;
+            color: #2c3e50;
+            margin-bottom: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Slightly smaller min size */
+            gap: 30px; /* More gap */
+            text-align: left;
+        }
+
+        .feature-item {
+            background-color: #ffffff;
+            padding: 2rem; /* More padding */
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.05); /* Softer shadow */
+            border-left: 5px solid #3498db; /* Prominent accent border */
+            transition: all 0.3s ease-in-out;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-5px); /* Lift on hover */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #2ecc71; /* Green accent on hover */
+        }
+
+        .feature-item i {
+            font-size: 2.8em; /* Larger icon */
+            color: #3498db;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease-in-out;
+        }
+        .feature-item:hover i {
+            color: #2ecc71; /* Green icon on hover */
+        }
+
+        .feature-item h3 {
+            font-size: 1.4em; /* Larger heading */
+            color: #2c3e50;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .feature-item p {
+            font-size: 1em;
+            color: #607d8b;
+        }
+
+        /* Mindmap Display Section */
+        .mindmap-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 900px; /* Match container width */
+            padding: 0 1rem; /* Add some horizontal padding */
+        }
+
+        #mindmap-container {
+            width: 100%;
+            height: 650px; /* Slightly taller mindmap area */
+            border: 1px solid #dcdfe4; /* Softer border */
+            border-radius: 12px;
+            margin-top: 0rem;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            color: #8fa1b4; /* Muted grey for placeholder */
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07); /* Clearer shadow */
+        }
+
+        #mindmap-container.loading::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.85); /* Slightly less transparent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #mindmap-container.loading::after {
+            content: "Generating Mindmap...";
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.6em; /* Larger loading text */
+            color: #3498db; /* Primary blue loading text */
+            font-weight: 600;
+            z-index: 11;
+        }
+
+        #mindmap-container.loading svg {
+            opacity: 0.2; /* Dimm existing mindmap more */
+        }
+
+        /* D3.js Mindmap Styles */
+        .node circle {
+            stroke: #ffffff; /* White stroke for better contrast */
+            stroke-width: 3px; /* Thicker stroke */
+            cursor: grab;
+            transition: stroke-width 0.1s ease-in-out, stroke 0.1s ease-in-out;
+        }
+        .node circle:hover {
+            stroke: #e74c3c; /* Red highlight on hover for interactivity */
+            stroke-width: 4px;
+        }
+
+        .node text {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px; /* Slightly larger base font size */
+            fill: #3f4a59; /* Darker, sophisticated text */
+            text-anchor: middle;
+            pointer-events: none;
+            font-weight: 600; /* Bolder text */
+            /* Stronger text stroke for better readability against various backgrounds */
+            -webkit-text-stroke: 0.5px #ffffff;
+            text-stroke: 0.5px #ffffff;
+            paint-order: stroke fill;
+        }
+
+        .node text.hover-text { /* Style for full text on hover */
+             font-size: 15px; /* Larger on hover */
+             font-weight: 700; /* Even bolder on hover */
+             fill: #2c3e50; /* Darker fill */
+             -webkit-text-stroke: 0.7px #ffffff;
+             text-stroke: 0.7px #ffffff;
+        }
+
+        .link {
+            stroke: #aeb6bf; /* Softer, muted grey for links */
+            stroke-opacity: 0.7; /* Slightly more opaque */
+            stroke-width: 2px; /* Thicker links */
+            transition: stroke 0.1s ease-in-out;
+        }
+        .link:hover {
+            stroke: #3498db; /* Blue on hover to indicate path */
+        }
+
+
+        /* Footer */
+        footer {
+            background-color: #2c3e50; /* Deep blue-grey footer */
+            color: #dbe4ee; /* Lighter text for footer */
+            text-align: center;
+            padding: 2rem 0; /* More padding */
+            margin-top: auto;
+            font-size: 0.9em;
+            letter-spacing: 0.02em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 2rem auto;
+                padding: 1.5rem;
+                border-radius: 10px;
+            }
+
+            header h1 {
+                font-size: 2.5em;
+            }
+
+            header p {
+                font-size: 1em;
+            }
+
+            .upload-box {
+                padding: 2.5rem;
+                min-height: 160px;
+            }
+            .upload-box i {
+                font-size: 3.5em;
+            }
+            .upload-box p {
+                font-size: 1.1em;
+            }
+
+            .btn {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 1rem;
+                padding: 0.8rem 1.8rem;
+                font-size: 1em;
+            }
+
+            .btn-secondary {
+                 margin-top: 1rem;
+                 margin-left: 0;
+            }
+
+            #mindmap-container {
+                height: 450px;
+            }
+
+            .mindmap-controls {
+                justify-content: center;
+                padding: 0;
+                margin-top: 1.5rem;
+            }
+
+            .features-section h2 {
+                font-size: 2em;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr; /* Stack features on mobile */
+            }
+
+            .feature-item {
+                padding: 1.5rem;
+            }
+            .feature-item i {
+                font-size: 2.5em;
+            }
+            .feature-item h3 {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+    <!-- Include D3.js library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Include saveSvgAsPng library -->
+    <script src="https://unpkg.com/save-svg-as-png@1.4.17/lib/saveSvgAsPng.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>MedMap</h1>
+            <p>Your AI-Powered Mindmap Generator for Medical Studies.</p>
+        </header>
+
+        <section class="upload-section">
+            <input type="file" id="documentUpload" accept=".pdf,.doc,.docx,.txt">
+            <label for="documentUpload" class="upload-box">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & Drop your medical documents here</p>
+                <p class="small-text">or click to browse. (PDF, DOCX, TXT)</p>
+            </label>
+            <div id="currentFileDisplay"></div>
+            <button class="btn" id="generateMindmapBtn"><i class="fas fa-brain"></i> Generate Mindmap</button>
+            <a href="#" class="btn btn-secondary" id="learnMoreBtn"><i class="fas fa-info-circle"></i> Learn More</a>
+        </section>
+
+        <section class="mindmap-display-section">
+            <h2>Generated Mindmap</h2>
+            <div class="mindmap-controls">
+                <button class="btn btn-secondary" id="downloadPngBtn" disabled><i class="fas fa-download"></i> Download as PNG</button>
+            </div>
+            <div id="mindmap-container">
+                Upload a document and click "Generate Mindmap" to see your visualization here.
+            </div>
+        </section>
+
+        <section class="features-section">
+            <h2>How MedMap Helps You Learn</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Concept Clarity</h3>
+                    <p>AI simplifies complex medical texts into clear, interconnected concepts.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-sitemap"></i>
+                    <h3>Visual Learning</h3>
+                    <p>Transforms dense notes into interactive, easy-to-digest visual mindmaps.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-hourglass-half"></i>
+                    <h3>Save Time</h3>
+                    <p>Automate summarization and organization, focusing your precious study hours.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Boost Retention</h3>
+                    <p>Enhance memory and recall with visually engaging and structured content.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 MedMap. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const documentUpload = document.getElementById('documentUpload');
+        const uploadBox = document.querySelector('.upload-box');
+        const generateMindmapBtn = document.getElementById('generateMindmapBtn');
+        const learnMoreBtn = document.getElementById('learnMoreBtn');
+        const downloadPngBtn = document.getElementById('downloadPngBtn');
+        const currentFileDisplay = document.getElementById('currentFileDisplay');
+        const mindmapContainer = document.getElementById('mindmap-container');
+
+        // --- Configuration ---
+        const BACKEND_URL = 'http://127.0.0.1:5000'; // Flask's default address
+
+        // Store the last generated SVG element for download
+        let currentSvgElement = null;
+        let currentFileName = "medmap_mindmap"; // Default filename for download
+
+        // Custom D3.js Color Scale for nodes
+        // A more vibrant and distinct palette
+        const nodeColorPalette = [
+            "#3498db", /* Primary Blue */
+            "#2ecc71", /* Emerald Green */
+            "#9b59b6", /* Amethyst Purple */
+            "#e67e22", /* Carrot Orange */
+            "#1abc9c", /* Turquoise */
+            "#f1c40f", /* Sunflower Yellow */
+            "#e74c3c", /* Alizarin Red */
+            "#34495e", /* Wet Asphalt (dark blue-grey) */
+            "#95a5a6", /* Asbestos (light grey-blue) */
+            "#d35400"  /* Pumpkin Orange */
+        ];
+        const colorScale = d3.scaleOrdinal(nodeColorPalette);
+
+
+        // --- D3.js Mindmap Visualization Function ---
+        function renderMindmap(mindmapData, filename = "medmap_mindmap") {
+            mindmapContainer.innerHTML = ''; // Clear previous mindmap or placeholder text
+            mindmapContainer.classList.remove('loading'); // Remove loading state
+            downloadPngBtn.disabled = true; // Disable download until rendered
+
+            const width = mindmapContainer.clientWidth;
+            const height = mindmapContainer.clientHeight;
+
+            const svg = d3.select("#mindmap-container").append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Add a transparent background rectangle for zoom/pan interaction
+            svg.append("rect")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("fill", "white")
+                .style("pointer-events", "all"); // Important for enabling panning from whitespace
+
+            const g = svg.append("g"); // Group for zooming/panning
+
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 4]) // Allow zooming from 10% to 400%
+                .on("zoom", function(event) {
+                    g.attr("transform", event.transform);
+                });
+            svg.call(zoom);
+
+            const root = d3.hierarchy(mindmapData);
+            const nodes = root.descendants();
+            const links = root.links();
+
+            // Create a force simulation
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(150).strength(0.8)) // Increased distance and strength
+                .force("charge", d3.forceManyBody().strength(-600)) // Stronger repulsion
+                .force("center", d3.forceCenter(width / 2, height / 2)) // Center the graph
+                .force("collide", d3.forceCollide(35)); // Prevent nodes from overlapping more
+
+            // Draw links
+            const link = g.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(links)
+                .enter().append("line")
+                .attr("class", "link");
+
+            // Draw nodes
+            const node = g.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(nodes)
+                .enter().append("g")
+                .attr("class", "node")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            node.append("circle")
+                .attr("r", d => d.depth === 0 ? 20 : (d.depth === 1 ? 16 : 12)) // Varied radius by depth, slightly larger overall
+                .attr("fill", d => colorScale(d.depth)) // Assign color based on depth
+                .attr("stroke-width", 3);
+
+            // Append text after circles so it's on top
+            node.append("text")
+                .text(d => d.data.text.length > 25 ? d.data.text.substring(0, 22) + "..." : d.data.text) // Truncate slightly more
+                .attr("x", 0)
+                .attr("y", d => d.depth === 0 ? 28 : (d.depth === 1 ? 23 : 17)) // Adjust text position based on circle size
+                .attr("text-anchor", "middle")
+                .attr("pointer-events", "none") // Do not block mouse events for the circle
+                .on("mouseover", function(event, d) {
+                    // Show full text on hover
+                    d3.select(this).text(d.data.text).attr("class", "hover-text").attr("y", d => d.depth === 0 ? 32 : (d.depth === 1 ? 27 : 21));
+                })
+                .on("mouseout", function(event, d) {
+                    // Revert to truncated text on mouse out
+                    d3.select(this).text(d.data.text.length > 25 ? d.data.text.substring(0, 22) + "..." : d.data.text)
+                        .attr("class", "") // Remove hover class
+                        .attr("y", d => d.depth === 0 ? 28 : (d.depth === 1 ? 23 : 17));
+                });
+
+
+            // Update positions during simulation ticks
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+
+            // Drag functions
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            // Store for download
+            currentSvgElement = svg.node();
+            currentFileName = filename.replace(/\s+/g, '_').replace(/\..+$/, '') + "_mindmap.png"; // Clean filename
+            downloadPngBtn.disabled = false; // Enable download button
+        }
+
+        // --- Frontend UI Logic ---
+
+        // Handle file drag and drop / click
+        uploadBox.addEventListener('click', () => {
+            documentUpload.click();
+        });
+
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.style.borderColor = '#3498db'; /* Brighter on dragover */
+            uploadBox.style.backgroundColor = '#e0f2f7';
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.style.borderColor = '#9bc5e2'; /* Revert to softer */
+            uploadBox.style.backgroundColor = '#eef7fc';
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.style.borderColor = '#9bc5e2';
+            uploadBox.style.backgroundColor = '#eef7fc';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                documentUpload.files = files;
+                updateFileDisplay(files[0]);
+            }
+        });
+
+        documentUpload.addEventListener('change', () => {
+            if (documentUpload.files.length > 0) {
+                updateFileDisplay(documentUpload.files[0]);
+                generateMindmapBtn.disabled = false;
+            } else {
+                currentFileDisplay.textContent = '';
+                generateMindmapBtn.disabled = true;
+                downloadPngBtn.disabled = true; // Disable download if no file
+            }
+        });
+
+        function updateFileDisplay(file) {
+            currentFileDisplay.textContent = `Selected: ${file.name}`;
+            generateMindmapBtn.disabled = false;
+        }
+
+        // Initialize button state
+        generateMindmapBtn.disabled = true;
+        downloadPngBtn.disabled = true; // Disable on initial load
+
+        // Handle Generate Mindmap Button click
+        generateMindmapBtn.addEventListener('click', async () => {
+            if (documentUpload.files.length === 0) {
+                alert('Please upload a document first!');
+                return;
+            }
+
+            const file = documentUpload.files[0];
+            const formData = new FormData();
+            formData.append('document', file);
+
+            // Update UI for loading state
+            currentFileDisplay.textContent = `Processing "${file.name}"...`;
+            generateMindmapBtn.disabled = true;
+            generateMindmapBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            downloadPngBtn.disabled = true; // Disable download button during generation
+            mindmapContainer.classList.add('loading'); // Show mindmap loading overlay
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/upload-and-generate`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentFileDisplay.textContent = `Mindmap for "${file.name}" is ready!`;
+                    renderMindmap(data.mindmap, file.name); // Pass filename to render for PNG name
+                } else {
+                    currentFileDisplay.textContent = `Error processing "${file.name}".`;
+                    alert(`Error: ${data.error || 'Unknown error'}`);
+                    console.error('Backend error:', data.error);
+                    mindmapContainer.innerHTML = `<p style="color: #d62728; margin-top: 2rem; font-weight: 500;">Error: ${data.error || 'Unknown error'}</p>`; // Display error in container
+                }
+            } catch (error) {
+                currentFileDisplay.textContent = `Network error processing "${file.name}".`;
+                alert('Network error or server unavailable.');
+                console.error('Fetch error:', error);
+                mindmapContainer.innerHTML = `<p style="color: #d62728; margin-top: 2rem; font-weight: 500;">Network error or server unavailable.</p>`; // Display error in container
+            } finally {
+                generateMindmapBtn.disabled = false;
+                generateMindmapBtn.innerHTML = '<i class="fas fa-brain"></i> Generate Mindmap';
+                mindmapContainer.classList.remove('loading'); // Hide loading overlay
+                // Download button enabled in renderMindmap if successful
+            }
+        });
+
+        // Handle Learn More Button click
+        learnMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const featuresSection = document.querySelector('.features-section');
+            if (featuresSection) {
+                featuresSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // Handle Download PNG Button click
+        downloadPngBtn.addEventListener('click', () => {
+            if (currentSvgElement) {
+                // saveSvgAsPng is provided by the external library
+                // It automatically finds the <svg> element (or you can pass it)
+                // and converts it to PNG.
+                saveSvgAsPng.saveSvgAsPng(currentSvgElement.closest('svg'), currentFileName, {
+                    scale: 2, // Increase resolution for better quality
+                    backgroundColor: '#ffffff' // Ensure white background for PNG
+                });
+            } else {
+                alert('No mindmap to download!');
+            }
+        });
+
+
+        // Initial setup on page load
+        window.addEventListener('load', () => {
+            if (documentUpload.files.length > 0) {
+                updateFileDisplay(documentUpload.files[0]);
+            }
+        });
+
+        // Re-render mindmap on window resize for responsiveness
+        window.addEventListener('resize', () => {
+            // Check if there's an SVG already rendered
+            if (mindmapContainer.querySelector('svg')) {
+                // We'll provide a cleaner message and disable download until regenerated.
+                mindmapContainer.innerHTML = '<p style="margin-top: 2rem; color: #5d6d7e; font-weight: 500;">Mindmap size changed. Please click "Generate Mindmap" again for optimal view.</p>';
+                downloadPngBtn.disabled = true; // Disable download as it might be distorted
+            }
+        });
+    </script>
+</body>
+</html>
